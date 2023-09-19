@@ -113,8 +113,6 @@ def train_deep_averaging_network(args, train_examples: List[SentimentExample], d
     and return an instance of that for the typo setting if you want; you're allowed to return two different model types
     for the two settings.
     """
-
-    total_epochs = args.num_epochs
     hidden_dim = args.hidden_size
     if torch.cuda.is_available():
         torch_device = torch.device("cuda:0")
@@ -142,6 +140,11 @@ def train_deep_averaging_network(args, train_examples: List[SentimentExample], d
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(nn_supporting_model.parameters(), lr=learning_rate)
 
+    if not args.use_typo_setting:
+        total_epochs = args.num_epochs
+    else:
+        total_epochs = 15
+
     for epoch_count in range(total_epochs):
         nn_supporting_model.train()
         for example in train_examples:
@@ -167,7 +170,7 @@ class Prefix_WordEmbeddings:
         self.word_indexer = word_indexer
         self.vectors = vectors
 
-    def get_initialized_embedding_layer(self, frozen=True):
+    def get_initialized_embedding_layer(self, frozen=False):
         """
         :param frozen: True if you want the embedding layer to stay frozen, false to fine-tune embeddings
         :return: torch.nn.Embedding layer you can use in your network
